@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//criar uma migration: yarn prisma migrate dev 
+//tabela de usuarios
+model User {
+  id         String    @id @default(uuid())
+  name       String
+  email      String
+  password   String
+  created_at DateTime? @default(now())
+  update_at  DateTime? @default(now())
+
+  @@map("usuarios")
+}
+
+//tabela de categoria
+model Category {
+  id         String    @id @default(uuid())
+  name       String
+  created_at DateTime? @default(now())
+  update_at  DateTime? @default(now())
+  produtos   Product[] //relação, onde 1 categoria pode ter N produtos
+
+  @@map("categorias")
+}
+
+//tabela de produtos
+model Product {
+  id          String    @id @default(uuid())
+  name        String
+  price       String
+  description String
+  banner      String
+  created_at  DateTime? @default(now())
+  update_at   DateTime? @default(now())
+  categoria   Category? @relation(fields: [category_id], references: [id])
+  category_id String?
+  Items       Item[] //relação, onde 1 produto pode ter N items
+
+  @@map("produtos")
+}
+
+//tabela pedido
+model Order {
+  id         String    @id @default(uuid())
+  table      Int
+  status     Boolean   @default(false)
+  darft      Boolean   @default(true) //rascunho (draft)
+  name       String?
+  created_at DateTime? @default(now())
+  update_at  DateTime? @default(now())
+  items      Item[] //relação, onde 1 pedido pode ter vários item
+
+  @@map("pedidos")
+}
+
+model Item {
+  id     String @id @default(uuid())
+  amount Int //quantidade
+
+  created_at DateTime? @default(now())
+  update_at  DateTime? @default(now())
+
+  pedidos  Order  @relation(fields: [order_id], references: [id]) //campo para informar que cada pedido terá um id
+  order_id String
+
+  produto    Product @relation(fields: [product_id], references: [id]) // campo para informar que cada produto terá um id
+  product_id String
+
+  @@map("items")
+}
